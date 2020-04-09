@@ -11,28 +11,29 @@ app.use(cors());
 const repositories = [];
 
 app.get("/repositories", (request, response) => {
-  console.log(repositories);
   return response.json(repositories);
 });
 
 app.post("/repositories", (request, response) => {
-  const {name, url, techs} = request.body;
-  repositories.push({id: uuid(), name, url, techs, likes: 0});
-  return response.json({id: uuid(), name, url, techs, likes: 0});
+  const {title, url, techs} = request.body;
+  const repo = {id: uuid(), title, url, techs, likes: 0};
+  repositories.push(repo);
+
+  return response.json(repo);
 });
 
 app.put("/repositories/:id", (request, response) => {
   const {id} = request.params;
-  const {name, techs, url} = request.body;
+  const {title, techs, url} = request.body;
 
   const index = repositories.findIndex(item=>item.id == id)
 
   if(index === -1){
-    return response.status(400).send({error: "id nao encontrado"})
+    return response.status(400).send({error: "repo not found"})
   }
 
   repositories[index] = {
-    id,name, techs, url
+    id,title, techs, url, likes: repositories[index].likes
   }
   
   return response.json(repositories[index]);
@@ -40,12 +41,12 @@ app.put("/repositories/:id", (request, response) => {
 });
 
 app.delete("/repositories/:id", (req, res) => {
-  const {id}=req.params;
+  const { id }=req.params;
 
-  const index = repositories.findIndex(item=>item.id === id);
+  const index = repositories.findIndex(item=>item.id == id);
 
   if(index < 0){
-    return res.status(400).send({error: "id invalido"})
+    return res.status(400).send({error: "repo does not exist"})
   }
   
   repositories.splice(index, 1);
@@ -57,15 +58,14 @@ app.delete("/repositories/:id", (req, res) => {
 app.post("/repositories/:id/like", (request, response) => {
   const {id}=request.params;
 
-  const index = repositories.findIndex(item=>item.id === id);
-  // console.log(index);
-
+  const index = repositories.findIndex(item=>item.id == id);
+  
   if(index < 0){
-    return response.status(400).send({error: "id invalido"})
+    return response.status(400).send({error: "repo does not exist"})
   }
 
   repositories[index] = {...repositories[index],likes: repositories[index].likes + 1 }
-  // console.log(repositories[index]);
+
 
   return response.json(repositories[index])
 });
